@@ -1,0 +1,2209 @@
+swagger: "2.0"
+info:
+  title: CardioGo API
+  description: >
+    Documentación de la API de CardioGo.  
+    **Autenticación con JWT:**  
+    1. Ve al endpoint POST /auth/login.  
+       Usa "Try it out" para enviar un email y contraseña de un usuario existente en tu base de datos.  
+       Ejemplo:  
+       email: juan.gonzalez@example.com  
+       password: 123456  
+       Copia el `access_token` recibido.  
+    2. Haz clic en "Authorize" en Swagger y pega: `Bearer <access_token>`  
+       ¡Listo! Ahora puedes probar endpoints protegidos.
+  version: "1.0.0"
+
+host: localhost:5000
+basePath: /cardio-go/v1
+schemes:
+  - http
+
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: "Usa el token JWT con el prefijo `Bearer `, ejemplo: `Bearer eyJhbGciOiJIUzI1Ni...`"
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login de usuario
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: juan.gonzalez@example.com
+              password:
+                type: string
+                example: "123456"
+      responses:
+        200:
+          description: Login exitoso
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+                  user_id:
+                    type: integer
+                    example: 19
+        401:
+          description: Credenciales inválidas
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Refrescar token
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Token refrescado
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+        401:
+          description: Token inválido o expirado
+        422:
+          description: Token inválido
+
+  /auth/protected:
+    get:
+      tags:
+        - Auth
+      summary: Endpoint protegido
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Acceso autorizado
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  logged_in_as:
+                    type: integer
+                    example: 19
+        401:
+          description: Token inválido o expirado
+
+  /users:
+    get:
+      tags:
+        - Usuarios
+      summary: Listar todos los usuarios
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Lista de usuarios
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    nombre:
+                      type: string
+                    apellido_paterno:
+                      type: string
+                    apellido_materno:
+                      type: string
+                    telefono:
+                      type: string
+                    email:
+                      type: string
+                    rol_id:
+                      type: integer
+    post:
+      tags:
+        - Usuarios
+      summary: Crear nuevo usuario
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              nombre:
+                type: string
+              apellido_paterno:
+                type: string
+              apellido_materno:
+                type: string
+              telefono:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+              rol_id:
+                type: integer
+      responses:
+        201:
+          description: Usuario creado exitosamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+        400:
+          description: Datos inválidos
+
+  /patients:
+    get:
+      tags:
+        - Pacientes
+      summary: Listar todos los pacientes
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Lista de pacientes
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    usuario_id:
+                      type: integer
+                      example: 10
+                    fecha_nacimiento:
+                      type: string
+                      format: date
+                      example: "1980-05-12"
+                    estado_civil:
+                      type: string
+                      example: "Soltero"
+                    ocupacion:
+                      type: string
+                      example: "Ingeniero"
+                    sexo:
+                      type: string
+                      example: "Masculino"
+                    direccion_id:
+                      type: integer
+                      example: 5
+                    cuidador_id:
+                      type: integer
+                      example: 2
+                    personal_adm_id:
+                      type: integer
+                      example: 3
+    post:
+      tags:
+        - Pacientes
+      summary: Crear nuevo paciente
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              usuario_id:
+                type: integer
+                example: 10
+              fecha_nacimiento:
+                type: string
+                format: date
+                example: "1980-05-12"
+              estado_civil:
+                type: string
+                example: "Soltero"
+              ocupacion:
+                type: string
+                example: "Ingeniero"
+              sexo:
+                type: string
+                example: "Masculino"
+              direccion_id:
+                type: integer
+                example: 5
+              cuidador_id:
+                type: integer
+                example: 2
+              personal_adm_id:
+                type: integer
+                example: 3
+      responses:
+        201:
+          description: Paciente creado exitosamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+        400:
+          description: Datos inválidos
+
+  /patients/{id}:
+    get:
+      tags:
+        - Pacientes
+      summary: Obtener paciente por ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          example: 1
+      responses:
+        200:
+          description: Detalle del paciente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  usuario_id:
+                    type: integer
+                  fecha_nacimiento:
+                    type: string
+                    format: date
+                  estado_civil:
+                    type: string
+                  ocupacion:
+                    type: string
+                  sexo:
+                    type: string
+                  direccion_id:
+                    type: integer
+                  cuidador_id:
+                    type: integer
+                  personal_adm_id:
+                    type: integer
+        404:
+          description: Paciente no encontrado
+
+    put:
+      tags:
+        - Pacientes
+      summary: Actualizar datos de un paciente
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          example: 1
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              usuario_id:
+                type: integer
+                example: 10
+              fecha_nacimiento:
+                type: string
+                format: date
+                example: "1980-05-12"
+              estado_civil:
+                type: string
+                example: "Soltero"
+              ocupacion:
+                type: string
+                example: "Ingeniero"
+              sexo:
+                type: string
+                example: "Masculino"
+              direccion_id:
+                type: integer
+                example: 5
+              cuidador_id:
+                type: integer
+                example: 2
+              personal_adm_id:
+                type: integer
+                example: 3
+      responses:
+        200:
+          description: Paciente actualizado exitosamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+        400:
+          description: Datos inválidos
+        404:
+          description: Paciente no encontrado
+
+    delete:
+      tags:
+        - Pacientes
+      summary: Eliminar un paciente
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          example: 1
+      responses:
+        200:
+          description: Paciente eliminado correctamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+        404:
+          description: Paciente no encontrado
+
+  /alerts:
+    get:
+      tags:
+        - Alertas
+      summary: Listar todas las alertas
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Lista de alertas
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    tipo_alerta_id:
+                      type: integer
+                    nivel_alerta_id:
+                      type: integer
+                    paciente_id:
+                      type: integer
+                    fecha:
+                      type: string
+                      format: date-time
+                    descripcion:
+                      type: string
+    post:
+      tags:
+        - Alertas
+      summary: Crear nueva alerta
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              tipo_alerta_id:
+                type: integer
+              nivel_alerta_id:
+                type: integer
+              paciente_id:
+                type: integer
+              fecha:
+                type: string
+                format: date-time
+              descripcion:
+                type: string
+      responses:
+        201:
+          description: Alerta creada exitosamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /alerts/{id}:
+    get:
+      tags:
+        - Alertas
+      summary: Obtener alerta por ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Detalle de la alerta
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  tipo_alerta_id:
+                    type: integer
+                  nivel_alerta_id:
+                    type: integer
+                  paciente_id:
+                    type: integer
+                  fecha:
+                    type: string
+                    format: date-time
+                  descripcion:
+                    type: string
+        404:
+          description: Alerta no encontrada
+
+    put:
+      tags:
+        - Alertas
+      summary: Actualizar alerta
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              tipo_alerta_id:
+                type: integer
+              nivel_alerta_id:
+                type: integer
+              paciente_id:
+                type: integer
+              fecha:
+                type: string
+                format: date-time
+              descripcion:
+                type: string
+      responses:
+        200:
+          description: Alerta actualizada exitosamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+        404:
+          description: Alerta no encontrada
+
+    delete:
+      tags:
+        - Alertas
+      summary: Eliminar alerta
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Alerta eliminada correctamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+        404:
+          description: Alerta no encontrada
+
+  /medicines:
+    get:
+      tags:
+        - Medicinas
+      summary: Listar todas las medicinas
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Lista de medicinas
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    nombre:
+                      type: string
+                    formula_id:
+                      type: integer
+    post:
+      tags:
+        - Medicinas
+      summary: Crear nueva medicina
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              nombre:
+                type: string
+              formula_id:
+                type: integer
+      responses:
+        201:
+          description: Medicina creada exitosamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /medicines/{id}:
+    get:
+      tags:
+        - Medicinas
+      summary: Obtener medicina por ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Detalle de la medicina
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  nombre:
+                    type: string
+                  formula_id:
+                    type: integer
+        404:
+          description: Medicina no encontrada
+
+    put:
+      tags:
+        - Medicinas
+      summary: Actualizar medicina
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              nombre:
+                type: string
+              formula_id:
+                type: integer
+      responses:
+        200:
+          description: Medicina actualizada exitosamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+        404:
+          description: Medicina no encontrada
+
+    delete:
+      tags:
+        - Medicinas
+      summary: Eliminar medicina
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Medicina eliminada correctamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+        404:
+          description: Medicina no encontrada
+
+  /consultations:
+    get:
+      tags:
+        - Consultas
+      summary: Listar todas las consultas
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Lista de consultas
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    paciente_id:
+                      type: integer
+                    medico_id:
+                      type: integer
+                    fecha:
+                      type: string
+                      format: date-time
+                    motivo:
+                      type: string
+    post:
+      tags:
+        - Consultas
+      summary: Crear nueva consulta
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              paciente_id:
+                type: integer
+              medico_id:
+                type: integer
+              fecha:
+                type: string
+                format: date-time
+              motivo:
+                type: string
+      responses:
+        201:
+          description: Consulta creada exitosamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /consultations/{id}:
+    get:
+      tags:
+        - Consultas
+      summary: Obtener consulta por ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Detalle de la consulta
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  paciente_id:
+                    type: integer
+                  medico_id:
+                    type: integer
+                  fecha:
+                    type: string
+                    format: date-time
+                  motivo:
+                    type: string
+        404:
+          description: Consulta no encontrada
+
+    put:
+      tags:
+        - Consultas
+      summary: Actualizar consulta
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              paciente_id:
+                type: integer
+              medico_id:
+                type: integer
+              fecha:
+                type: string
+                format: date-time
+              motivo:
+                type: string
+      responses:
+        200:
+          description: Consulta actualizada exitosamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+        404:
+          description: Consulta no encontrada
+
+    delete:
+      tags:
+        - Consultas
+      summary: Eliminar consulta
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Consulta eliminada correctamente
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+        404:
+          description: Consulta no encontrada
+
+  /formulas:
+    get:
+      tags:
+        - Formulas
+      summary: List all formulas
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of formulas
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    nombre:
+                      type: string
+                    concentracion:
+                      type: string
+    post:
+      tags:
+        - Formulas
+      summary: Create formula
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              nombre:
+                type: string
+              concentracion:
+                type: string
+      responses:
+        201:
+          description: Formula created
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /formulas/{id}:
+    get:
+      tags:
+        - Formulas
+      summary: Get formula by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Formula detail
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  nombre:
+                    type: string
+                  concentracion:
+                    type: string
+        404:
+          description: Formula not found
+    put:
+      tags:
+        - Formulas
+      summary: Update formula
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              nombre:
+                type: string
+              concentracion:
+                type: string
+      responses:
+        200:
+          description: Formula updated
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Formula not found
+    delete:
+      tags:
+        - Formulas
+      summary: Delete formula
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Formula deleted
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Formula not found
+
+  /caregivers:
+    get:
+      tags:
+        - Caregivers
+      summary: List all caregivers
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of caregivers
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    usuario_id:
+                      type: integer
+    post:
+      tags:
+        - Caregivers
+      summary: Create caregiver
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              usuario_id:
+                type: integer
+      responses:
+        201:
+          description: Caregiver created
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /caregivers/{id}:
+    get:
+      tags:
+        - Caregivers
+      summary: Get caregiver by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Caregiver detail
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  usuario_id:
+                    type: integer
+        404:
+          description: Caregiver not found
+    put:
+      tags:
+        - Caregivers
+      summary: Update caregiver
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              usuario_id:
+                type: integer
+      responses:
+        200:
+          description: Caregiver updated
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Caregiver not found
+    delete:
+      tags:
+        - Caregivers
+      summary: Delete caregiver
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Caregiver deleted
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Caregiver not found
+
+  /administrative_staff:
+    get:
+      tags:
+        - AdministrativeStaff
+      summary: List all administrative staff
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of administrative staff
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    usuario_id:
+                      type: integer
+    post:
+      tags:
+        - AdministrativeStaff
+      summary: Create administrative staff
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              usuario_id:
+                type: integer
+      responses:
+        201:
+          description: Administrative staff created
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /administrative_staff/{id}:
+    get:
+      tags:
+        - AdministrativeStaff
+      summary: Get administrative staff by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Administrative staff detail
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  usuario_id:
+                    type: integer
+        404:
+          description: Administrative staff not found
+    put:
+      tags:
+        - AdministrativeStaff
+      summary: Update administrative staff
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              usuario_id:
+                type: integer
+      responses:
+        200:
+          description: Administrative staff updated
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Administrative staff not found
+    delete:
+      tags:
+        - AdministrativeStaff
+      summary: Delete administrative staff
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Administrative staff deleted
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Administrative staff not found
+
+  /addresses:
+    get:
+      tags:
+        - Addresses
+      summary: List all addresses
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of addresses
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    codigo_postal:
+                      type: string
+    post:
+      tags:
+        - Addresses
+      summary: Create address
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              codigo_postal:
+                type: string
+      responses:
+        201:
+          description: Address created
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /addresses/{id}:
+    get:
+      tags:
+        - Addresses
+      summary: Get address by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Address detail
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  codigo_postal:
+                    type: string
+        404:
+          description: Address not found
+    put:
+      tags:
+        - Addresses
+      summary: Update address
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              codigo_postal:
+                type: string
+      responses:
+        200:
+          description: Address updated
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Address not found
+    delete:
+      tags:
+        - Addresses
+      summary: Delete address
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Address deleted
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Address not found
+
+  /doctors:
+    get:
+      tags:
+        - Doctors
+      summary: List all doctors
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of doctors
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    usuario_id:
+                      type: integer
+    post:
+      tags:
+        - Doctors
+      summary: Create doctor
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              usuario_id:
+                type: integer
+      responses:
+        201:
+          description: Doctor created
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /doctors/{id}:
+    get:
+      tags:
+        - Doctors
+      summary: Get doctor by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Doctor detail
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  usuario_id:
+                    type: integer
+        404:
+          description: Doctor not found
+    put:
+      tags:
+        - Doctors
+      summary: Update doctor
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              usuario_id:
+                type: integer
+      responses:
+        200:
+          description: Doctor updated
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Doctor not found
+    delete:
+      tags:
+        - Doctors
+      summary: Delete doctor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Doctor deleted
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Doctor not found
+
+  /emergency_contacts:
+    get:
+      tags:
+        - EmergencyContacts
+      summary: List all emergency contacts
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of emergency contacts
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    apellido_materno:
+                      type: string
+                    telefono:
+                      type: string
+                    relacion:
+                      type: string
+                    paciente_id:
+                      type: integer
+    post:
+      tags:
+        - EmergencyContacts
+      summary: Create emergency contact
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              apellido_materno:
+                type: string
+              telefono:
+                type: string
+              relacion:
+                type: string
+              paciente_id:
+                type: integer
+      responses:
+        201:
+          description: Emergency contact created
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /emergency_contacts/{id}:
+    get:
+      tags:
+        - EmergencyContacts
+      summary: Get emergency contact by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Emergency contact detail
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  apellido_materno:
+                    type: string
+                  telefono:
+                    type: string
+                  relacion:
+                    type: string
+                  paciente_id:
+                    type: integer
+        404:
+          description: Emergency contact not found
+    put:
+      tags:
+        - EmergencyContacts
+      summary: Update emergency contact
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              apellido_materno:
+                type: string
+              telefono:
+                type: string
+              relacion:
+                type: string
+              paciente_id:
+                type: integer
+      responses:
+        200:
+          description: Emergency contact updated
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Emergency contact not found
+    delete:
+      tags:
+        - EmergencyContacts
+      summary: Delete emergency contact
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Emergency contact deleted
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Emergency contact not found
+
+  /devices:
+    get:
+      tags:
+        - Devices
+      summary: List all devices
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of devices
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    cuidador_id:
+                      type: integer
+    post:
+      tags:
+        - Devices
+      summary: Create device
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              cuidador_id:
+                type: integer
+      responses:
+        201:
+          description: Device created
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /devices/{id}:
+    get:
+      tags:
+        - Devices
+      summary: Get device by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Device detail
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  cuidador_id:
+                    type: integer
+        404:
+          description: Device not found
+    put:
+      tags:
+        - Devices
+      summary: Update device
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              cuidador_id:
+                type: integer
+      responses:
+        200:
+          description: Device updated
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Device not found
+    delete:
+      tags:
+        - Devices
+      summary: Delete device
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Device deleted
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Device not found
+
+  /alert_levels:
+    get:
+      tags:
+        - AlertLevels
+      summary: List all alert levels
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of alert levels
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    nombre:
+                      type: string
+    post:
+      tags:
+        - AlertLevels
+      summary: Create alert level
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              nombre:
+                type: string
+      responses:
+        201:
+          description: Alert level created
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /alert_levels/{id}:
+    get:
+      tags:
+        - AlertLevels
+      summary: Get alert level by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Alert level detail
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  nombre:
+                    type: string
+        404:
+          description: Alert level not found
+    put:
+      tags:
+        - AlertLevels
+      summary: Update alert level
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              nombre:
+                type: string
+      responses:
+        200:
+          description: Alert level updated
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Alert level not found
+    delete:
+      tags:
+        - AlertLevels
+      summary: Delete alert level
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Alert level deleted
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Alert level not found
+
+  /alert_types:
+    get:
+      tags:
+        - AlertTypes
+      summary: List all alert types
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of alert types
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    nombre:
+                      type: string
+    post:
+      tags:
+        - AlertTypes
+      summary: Create alert type
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              nombre:
+                type: string
+      responses:
+        201:
+          description: Alert type created
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /alert_types/{id}:
+    get:
+      tags:
+        - AlertTypes
+      summary: Get alert type by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Alert type detail
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  nombre:
+                    type: string
+        404:
+          description: Alert type not found
+    put:
+      tags:
+        - AlertTypes
+      summary: Update alert type
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              nombre:
+                type: string
+      responses:
+        200:
+          description: Alert type updated
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Alert type not found
+    delete:
+      tags:
+        - AlertTypes
+      summary: Delete alert type
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Alert type deleted
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+        404:
+          description: Alert type not found

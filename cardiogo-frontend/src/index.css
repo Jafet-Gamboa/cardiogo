@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.input {
+  @apply w-full p-2 border rounded-xl bg-gray-light focus:outline-none focus:ring-2 focus:ring-primary;
+}
+
+.input-error {
+  @apply border-danger focus:ring-danger;
+}
+
+.btn-primary {
+  @apply bg-primary text-white py-2 px-4 rounded-xl hover:bg-primary-dark transition font-semibold;
+}
+
+.btn-secondary {
+  @apply bg-gray-light text-black py-2 px-4 rounded-xl hover:bg-gray-medium transition font-semibold;
+}
+
+.error-text {
+  @apply text-danger text-sm mt-1;
+}
